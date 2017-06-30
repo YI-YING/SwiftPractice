@@ -16,6 +16,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
     var spotLight: SCNNode!
     var touchCount: Int?
     var motionManager: CMMotionManager!
+    var moveDirection: String! = ""
 
     override func viewDidLoad() {
 
@@ -27,12 +28,66 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
         // Set scene to view
         let sceneView = self.view as! SCNView
+        sceneView.delegate = self
         sceneView.scene = mainScene
 
         // Set up accelerometer
         setupAccelerometer()
 
+        let buttonUp = createButton("up",
+                                    x: 100,
+                                    y: 250,
+                                    width: 100,
+                                    height: 50)
+
+        let buttonDown = createButton("down",
+                                      x: 100,
+                                      y: 350,
+                                      width: 100,
+                                      height: 50)
+
+        let buttonLeft = createButton("left",
+                                      x: 0,
+                                      y: 300,
+                                      width: 100,
+                                      height: 50)
+
+        let buttonRight = createButton("right",
+                                       x: 200,
+                                       y: 300,
+                                       width: 100,
+                                       height: 50)
+
+        self.view.addSubview(buttonUp)
+        self.view.addSubview(buttonDown)
+        self.view.addSubview(buttonLeft)
+        self.view.addSubview(buttonRight)
+
+
     }
+
+    func createButton(_ title: String, x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> UIButton {
+        let button = UIButton(frame: CGRect(x: x, y: y, width: width, height: height))
+        button.setTitle(title, for: .normal)
+        button.addTarget(self, action: #selector(touchDownAction), for: .touchDown)
+        button.addTarget(self, action: #selector(touchUpAction), for: .touchUpInside)
+        button.backgroundColor = UIColor.white
+        button.setTitleColor(.black, for: .normal)
+
+        return button
+    }
+
+    func touchDownAction(_ sender: UIButton) {
+
+        moveDirection = sender.titleLabel?.text
+
+        moveSpaceman(moveDirection)
+    }
+
+    func touchUpAction(_ sender: UIButton) {
+        moveDirection = ""
+    }
+
 
     func createMainScene() -> SCNScene {
 
@@ -156,16 +211,16 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
         switch direction {
             case "right":
-                heroNode?.position = SCNVector3(currentX! + moveDistance, currentY!, currentZ!)
-
-            case "left":
                 heroNode?.position = SCNVector3(currentX! - moveDistance, currentY!, currentZ!)
 
+            case "left":
+                heroNode?.position = SCNVector3(currentX! + moveDistance, currentY!, currentZ!)
+
             case "up":
-                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! - moveDistance)
+                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! + moveDistance)
 
             case "down":
-                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! + moveDistance)
+                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! - moveDistance)
 
             default:
                 break
@@ -176,16 +231,17 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
         switch contact.nodeB.physicsBody!.collisionBitMask {
-        case CollisionCategoryCollectibleLowValue:
-            print("Hit a low value collectible.")
+            case CollisionCategoryCollectibleLowValue:
+                print("Hit a low value collectible.")
 
-        case CollisionCategoryCollectibleMidValue:
-            print("Hit a mid value collectible.")
+            case CollisionCategoryCollectibleMidValue:
+                print("Hit a mid value collectible.")
 
-        case CollisionCategoryCollectibleHighValue:
-            print("Hit a high value collectible.")
-        default:
-            print("Hit something other than a collectible.")
+            case CollisionCategoryCollectibleHighValue:
+                print("Hit a high value collectible.")
+
+            default:
+                print("Hit something other than a collectible.")
         }
     }
 
@@ -195,5 +251,13 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
     func physicsWorld(_ world: SCNPhysicsWorld, didUpdate contact: SCNPhysicsContact) {
         print("didUpdateContact")
+    }
+
+    // MARK: - SCNSceneRendererDelegate methods
+
+    func renderer(_ renderer: SCNSceneRenderer, didRenderScene scene: SCNScene, atTime time: TimeInterval) {
+        if moveDirection != "" {
+            moveSpaceman(moveDirection)
+        }
     }
 }
