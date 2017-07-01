@@ -8,6 +8,7 @@
 
 import Foundation
 
+let NeedContact = 1
 let CollisionCategoryHero = 2
 let CollisionCategoryCollectibleLowValue = 4
 let CollisionCategoryCollectibleMidValue = 6

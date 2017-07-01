@@ -109,8 +109,6 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
         // Set up hero's collision detection
         let heroNode = mainScene?.rootNode.childNode(withName: "hero", recursively: true)
         heroNode?.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
-        heroNode?.physicsBody?.categoryBitMask = CollisionCategoryHero
-        heroNode?.physicsBody?.collisionBitMask = CollisionCategoryCollectibleLowValue | CollisionCategoryCollectibleMidValue | CollisionCategoryCollectibleHighValue
 
         // Set GameViewController to be delegate for reacting collision
         mainScene?.physicsWorld.contactDelegate = self
@@ -201,7 +199,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
     func moveSpaceman(_ direction: String) {
 
         // Move hero according accelerometer
-        SCNTransaction.animationDuration = 3
+        let moveSpeed = TimeInterval(1.0)
         let moveDistance = Float(10.0)
         let heroNode = mainScene.rootNode.childNode(withName: "hero", recursively: true)
 
@@ -209,48 +207,55 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
         let currentY = heroNode?.position.y
         let currentZ = heroNode?.position.z
 
+        var action: SCNAction!
         switch direction {
             case "right":
-                heroNode?.position = SCNVector3(currentX! - moveDistance, currentY!, currentZ!)
+                action = SCNAction.move(to: SCNVector3(currentX! - moveDistance, currentY!, currentZ!),
+                                        duration: moveSpeed)
 
             case "left":
-                heroNode?.position = SCNVector3(currentX! + moveDistance, currentY!, currentZ!)
+                action = SCNAction.move(to: SCNVector3(currentX! + moveDistance, currentY!, currentZ!),
+                                        duration: moveSpeed)
 
             case "up":
-                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! + moveDistance)
+                action = SCNAction.move(to: SCNVector3(currentX!, currentY!, currentZ! + moveDistance),
+                                       duration: moveSpeed)
 
             case "down":
-                heroNode?.position = SCNVector3(currentX!, currentY!, currentZ! - moveDistance)
+                action = SCNAction.move(to: SCNVector3(currentX!, currentY!, currentZ! - moveDistance),
+                                        duration: moveSpeed)
 
             default:
                 break
         }
+        heroNode?.runAction(action)
     }
 
     // MARK: - SCNPhysicsContactDelegate methods
 
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
-        switch contact.nodeB.physicsBody!.collisionBitMask {
+        var contactNode: SCNNode!
+
+        if contact.nodeA.physicsBody?.categoryBitMask == CollisionCategoryHero {
+            contactNode = contact.nodeB
+        }
+        else {
+            contactNode = contact.nodeA
+        }
+
+        switch contactNode.physicsBody!.categoryBitMask {
             case CollisionCategoryCollectibleLowValue:
-                print("Hit a low value collectible.")
+                print("Hit a low value " + contactNode.name!)
 
             case CollisionCategoryCollectibleMidValue:
-                print("Hit a mid value collectible.")
+                print("Hit a mid value " + contactNode.name!)
 
             case CollisionCategoryCollectibleHighValue:
-                print("Hit a high value collectible.")
+                print("Hit a high value " + contactNode.name!)
 
             default:
                 print("Hit something other than a collectible.")
         }
-    }
-
-    func physicsWorld(_ world: SCNPhysicsWorld, didEnd contact: SCNPhysicsContact) {
-        print("didEndContact")
-    }
-
-    func physicsWorld(_ world: SCNPhysicsWorld, didUpdate contact: SCNPhysicsContact) {
-        print("didUpdateContact")
     }
 
     // MARK: - SCNSceneRendererDelegate methods
