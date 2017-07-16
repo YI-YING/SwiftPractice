@@ -11,63 +11,109 @@ import QuartzCore
 import SceneKit
 import CoreMotion
 
-class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysicsContactDelegate {
+class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysicsContactDelegate, GameOverViewDelegate {
     var mainScene: SCNScene!
     var spotLight: SCNNode!
-    var touchCount: Int?
     var motionManager: CMMotionManager!
     var moveDirection: String! = ""
+    var gameOverlay: GameOverlay!
+    var gameStarted = false
 
     override func viewDidLoad() {
 
-        // Create a scene
-        mainScene = createMainScene()
-
-        // Create a camera and attach to hero
-        createHeroCamera()
-
-        // Set scene to view
-        let sceneView = self.view as! SCNView
-        sceneView.delegate = self
-        sceneView.scene = mainScene
+        start()
 
         // Set up accelerometer
         setupAccelerometer()
 
-        let buttonUp = createButton("up",
-                                    x: 100,
-                                    y: 250,
-                                    width: 100,
-                                    height: 50)
+        // Create buttons
+        let buttonUp = createButton("up")
+        let buttonDown = createButton("down")
+        let buttonLeft = createButton("left")
+        let buttonRight = createButton("right")
 
-        let buttonDown = createButton("down",
-                                      x: 100,
-                                      y: 350,
-                                      width: 100,
-                                      height: 50)
+        // Set buttons' constraints
+        let upConstraint = setConstraintForButton(button: buttonUp)
+        let downConstraint = setConstraintForButton(button: buttonDown)
+        let leftConstraint = setConstraintForButton(button: buttonLeft)
+        let rightConstraint = setConstraintForButton(button: buttonRight)
 
-        let buttonLeft = createButton("left",
-                                      x: 0,
-                                      y: 300,
-                                      width: 100,
-                                      height: 50)
-
-        let buttonRight = createButton("right",
-                                       x: 200,
-                                       y: 300,
-                                       width: 100,
-                                       height: 50)
-
+        // Add buttons to view
         self.view.addSubview(buttonUp)
         self.view.addSubview(buttonDown)
         self.view.addSubview(buttonLeft)
         self.view.addSubview(buttonRight)
 
+        // Add constraints to view
+        self.view.addConstraints(upConstraint)
+        self.view.addConstraints(downConstraint)
+        self.view.addConstraints(leftConstraint)
+        self.view.addConstraints(rightConstraint)
+    }
+
+    // MARK: - Button create and setting
+
+    // Coefficients which control uibutton's constraints
+    let ButtonWidth: CGFloat = 100
+    let ButtonHeight: CGFloat = 50
+    let ButtonMultiplier: CGFloat = 1.0
+    let ButtonXChange: [String: CGFloat] = ["up": 1, "down": 1, "left": 0, "right": 2]
+    let ButtonYChange: [String: CGFloat] = ["up": 2, "down": 0, "left": 1, "right": 1]
+
+    func setConstraintForButton(button: UIButton) -> [NSLayoutConstraint] {
+        var constraints: [NSLayoutConstraint] = []
+        let buttonXConstraint: NSLayoutConstraint
+        let buttonYConstraint: NSLayoutConstraint
+
+        button.translatesAutoresizingMaskIntoConstraints = false
+
+        // Button's height and width constraint
+        constraints.append(NSLayoutConstraint(item: button,
+                                              attribute: .width,
+                                              relatedBy: .equal,
+                                              toItem: nil,
+                                              attribute: .notAnAttribute,
+                                              multiplier: ButtonMultiplier,
+                                              constant: ButtonWidth))
+
+        constraints.append(NSLayoutConstraint(item: button,
+                                              attribute: .height,
+                                              relatedBy: .equal,
+                                              toItem: nil,
+                                              attribute: .notAnAttribute,
+                                              multiplier: ButtonMultiplier,
+                                              constant: ButtonHeight))
+
+        // Button's x and y constraint
+        let buttonTitle = button.titleLabel!.text!
+        let XChange = ButtonXChange[buttonTitle]!
+        let YChange = ButtonYChange[buttonTitle]!
+
+        buttonXConstraint = NSLayoutConstraint(item: button,
+                                               attribute: .left,
+                                               relatedBy: .equal,
+                                               toItem: self.view,
+                                               attribute: .left,
+                                               multiplier: ButtonMultiplier,
+                                               constant: XChange * ButtonWidth)
+
+        buttonYConstraint = NSLayoutConstraint(item: button,
+                                               attribute: .bottom,
+                                               relatedBy: .equal,
+                                               toItem: self.view,
+                                               attribute: .bottom,
+                                               multiplier: ButtonMultiplier,
+                                               constant: -YChange * ButtonHeight)
+
+        constraints.append(buttonXConstraint)
+        constraints.append(buttonYConstraint)
+
+        return constraints
 
     }
 
-    func createButton(_ title: String, x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> UIButton {
-        let button = UIButton(frame: CGRect(x: x, y: y, width: width, height: height))
+    func createButton(_ title: String) -> UIButton {
+        let button = UIButton()
         button.setTitle(title, for: .normal)
         button.addTarget(self, action: #selector(touchDownAction), for: .touchDown)
         button.addTarget(self, action: #selector(touchUpAction), for: .touchUpInside)
@@ -79,6 +125,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
     func touchDownAction(_ sender: UIButton) {
 
+        if !gameStarted {
+            gameOverlay.startTimer()
+            gameStarted = true
+        }
+
         moveDirection = sender.titleLabel?.text
 
         moveSpaceman(moveDirection)
@@ -88,7 +139,7 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
         moveDirection = ""
     }
 
-
+    // MARK: - Environment methods
     func createMainScene() -> SCNScene {
 
         // Create scene from dae file
@@ -231,6 +282,23 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
         heroNode?.runAction(action)
     }
 
+    func start() {
+        gameStarted = false
+
+        // Create a scene
+        mainScene = createMainScene()
+
+        // Create a camera and attach to hero
+        createHeroCamera()
+
+        // Set scene to view
+        let sceneView = self.view as! SCNView
+        sceneView.delegate = self
+        sceneView.scene = mainScene
+        sceneView.overlaySKScene = GameOverlay(size: view.frame.size)
+        gameOverlay = sceneView.overlaySKScene as! GameOverlay
+    }
+
     // MARK: - SCNPhysicsContactDelegate methods
 
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
@@ -245,16 +313,28 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
 
         switch contactNode.physicsBody!.categoryBitMask {
             case CollisionCategoryCollectibleLowValue:
-                print("Hit a low value " + contactNode.name!)
+                gameOverlay.score = gameOverlay.score + 10
 
             case CollisionCategoryCollectibleMidValue:
-                print("Hit a mid value " + contactNode.name!)
+                gameOverlay.score = gameOverlay.score + 20
 
             case CollisionCategoryCollectibleHighValue:
-                print("Hit a high value " + contactNode.name!)
+                gameOverlay.score = gameOverlay.score + 30
 
             default:
                 print("Hit something other than a collectible.")
+        }
+
+        contactNode.removeFromParentNode()
+
+        if gameOverlay.score >= 30 {
+            gameOverlay.stopTimer()
+            gameStarted = false
+
+            let gameOverView = GameOverView(size: self.view.frame.size, score: gameOverlay.scoreNode.text!)
+            gameOverView.gameOverViewDelegate = self
+
+            (self.view as! SCNView).overlaySKScene = gameOverView
         }
     }
 
@@ -264,5 +344,11 @@ class GameViewController: UIViewController, SCNSceneRendererDelegate, SCNPhysics
         if moveDirection != "" {
             moveSpaceman(moveDirection)
         }
+    }
+
+    // MARK: - GameOverDelegate methods
+
+    func gameOverViewTouchBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        start()
     }
 }
