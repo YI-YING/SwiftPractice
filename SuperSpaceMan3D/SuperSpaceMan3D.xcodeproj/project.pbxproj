@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2D1F62271F1A67E100A33265 /* GameOverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1F62261F1A67E100A33265 /* GameOverView.swift */; };
+		2D1F62291F1C47DE00A33265 /* Level1.scn in Resources */ = {isa = PBXBuildFile; fileRef = 2D1F62281F1C47DE00A33265 /* Level1.scn */; };
 		2D32650F1F07DB4500C07138 /* SharedConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D32650E1F07DB4500C07138 /* SharedConstants.swift */; };
 		2D5D69911F19F2C600D4CFF2 /* GameOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D5D69901F19F2C600D4CFF2 /* GameOverlay.swift */; };
 		2D9FDE991F0165EB008A60C0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9FDE981F0165EB008A60C0 /* AppDelegate.swift */; };
@@ -21,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		2D1F62261F1A67E100A33265 /* GameOverView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverView.swift; sourceTree = "<group>"; };
+		2D1F62281F1C47DE00A33265 /* Level1.scn */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = Level1.scn; sourceTree = "<group>"; };
 		2D32650E1F07DB4500C07138 /* SharedConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedConstants.swift; sourceTree = "<group>"; };
 		2D5D69901F19F2C600D4CFF2 /* GameOverlay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverlay.swift; sourceTree = "<group>"; };
 		2D9FDE951F0165EB008A60C0 /* SuperSpaceMan3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SuperSpaceMan3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +77,7 @@
 				2D9FDE9A1F0165EC008A60C0 /* art.scnassets */,
 				2D9FDEA31F0165EC008A60C0 /* LaunchScreen.storyboard */,
 				2D9FDEA61F0165EC008A60C0 /* Info.plist */,
+				2D1F62281F1C47DE00A33265 /* Level1.scn */,
 			);
 			path = SuperSpaceMan3D;
 			sourceTree = "<group>";
@@ -143,6 +146,7 @@
 				2D9FDEA51F0165EC008A60C0 /* LaunchScreen.storyboard in Resources */,
 				2D9FDEA21F0165EC008A60C0 /* Assets.xcassets in Resources */,
 				2D9FDEA01F0165EC008A60C0 /* Main.storyboard in Resources */,
+				2D1F62291F1C47DE00A33265 /* Level1.scn in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
